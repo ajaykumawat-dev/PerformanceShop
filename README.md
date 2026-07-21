@@ -1,302 +1,229 @@
-# ⚡ PerformanceShop - Adaptive E-commerce SPA
+# 🛒 PerformanceShop — Adaptive E-commerce SPA
 
-A modern, performance-optimized e-commerce Single Page Application that demonstrates **RUM (Real User Monitoring) based adaptive optimization**. The application intelligently adjusts its behavior based on device capabilities to provide the best experience for every user.
+Most e-commerce apps serve the same heavy experience to every user — a budget Android on 2G gets the same 4K images, gradient backgrounds, and spring animations as a MacBook on fibre. The result? Slow loads, janky scrolling, and frustrated users on the devices that need help the most.
 
-## 🎯 Key Features
+PerformanceShop solves this by **measuring your device before rendering anything**. It runs a real-time capability benchmark — memory, CPU cores, CPU speed, and network quality — scores your device, buckets it into Slow / Medium / Fast, and then serves a completely different experience for each tier. Slow device? No animations, low-res images, simplified UI, prefetch disabled. Fast device? Full fidelity, rich gradients, smooth Framer Motion transitions, aggressive prefetching. All automatic. Zero config.
 
-### 1. **RUM-Based Adaptive Optimization**
-The app automatically detects device capabilities and adapts its behavior:
+🔗 **Live Demo:** [performance-shop-five.vercel.app](https://performance-shop-five.vercel.app/)
 
-- **Capability Detection System**
-  - Measures device memory (GB)
-  - Counts CPU cores
-  - Detects network quality (2G/3G/4G)
-  - Runs micro-benchmark for CPU performance
-  
-- **Scoring System**
-  - CPU Benchmark: 30% weight
-  - Device Memory: 30% weight  
-  - CPU Cores: 20% weight
-  - Network Quality: 20% weight
-  - Total score determines device bucket: **Slow** (0-70%), **Medium** (71-90%), **Fast** (91-100%)
+> Open `/admin` to see your device's live capability score and RUM metrics in real time.
 
-- **Adaptive Behavior**
-  
-  **Slow Devices:**
-  - Low-resolution images
-  - Disabled animations
-  - Simplified UI components
-  - Basic text and buttons
-  - No gradient backgrounds
-  - Prefetch disabled
-  
-  **Medium/Fast Devices:**
-  - High-quality images
-  - Smooth animations
-  - Rich UI components
-  - Gradient backgrounds
-  - Aggressive prefetching
-  - Enhanced visual effects
+---
 
-### 2. **Performance Optimizations**
+## 📸 Preview
 
-- ✅ **Image Optimization**: Responsive images with 3 quality variants (low/medium/high)
-- ✅ **Service Worker Caching**: Stale-while-revalidate strategy for offline support
-- ✅ **Code Splitting**: Route-level and component-level lazy loading
-- ✅ **Lazy Loading**: Heavy components load on-demand
-- ✅ **Bundle Variants**: Adaptive bundling based on device capability
+> _Drop a screenshot of the app + Performance Widget here_
 
-### 3. **Live Performance Widget**
+---
 
-A floating widget displays real-time metrics:
-- **Memory Usage**: Current JS heap size in MB
-- **Speed Score**: Micro-benchmark result (0-100)
-- **Capability Bucket**: Device category (Slow/Medium/Fast)
+## ⚡ Lighthouse Results
 
-The widget updates every second and uses color coding for quick visual feedback.
+| Metric | Score |
+|:---|:---|
+| **Performance** | 🟢 98 / 100 |
+| **Accessibility** | 🟢 90 / 100 |
+| **SEO** | 🟢 100 / 100 |
+| **First Contentful Paint** | 0.6 s |
+| **Largest Contentful Paint** | 0.7 s |
+| **Total Blocking Time** | 0 ms |
+| **Cumulative Layout Shift** | 0.011 |
+| **Speed Index** | 1.6 s |
 
-### 4. **Complete E-commerce Features**
+> LCP of **0.7s** is well under Google's "good" threshold of 2.5s.
+> TBT of **0ms** — the main thread is never blocked, every interaction is instant.
 
-- 🏠 **Home Page**: Hero section with feature highlights
-- 🛍️ **Product Catalog**: 120+ products with lazy loading
-- 🔍 **Search & Filters**: Category filtering and text search
-- 📦 **Product Details**: Full product information and image gallery
-- 🛒 **Shopping Cart**: Add/remove/update quantities
-- 💳 **Checkout**: Mock payment flow
-- 📊 **Admin Dashboard**: RUM analytics and device metrics
+---
 
-## 🏗️ Technical Architecture
+## 🧠 How Adaptive Rendering Works
 
-### Frontend Stack
-- **React 18** + **TypeScript**
-- **Vite** for fast builds and HMR
-- **React Router** for routing with code splitting
-- **Tailwind CSS** for styling
-- **shadcn/ui** for UI components
+### Stage 1 — Device Capability Detection
 
-### State Management
-- **Context API** for global state (Capability & Cart)
-- **React Query** for data fetching (future API integration)
+On load, the app runs a weighted benchmark using four native browser APIs:
 
-### Performance Technologies
-- Service Worker API
-- Navigation Timing API
-- Performance Memory API
-- requestAnimationFrame for benchmarking
-- Dynamic imports for code splitting
+```typescript
+const totalScore =
+  benchmarkScore * 0.30 +   // CPU micro-benchmark via requestAnimationFrame
+  memoryScore    * 0.30 +   // navigator.deviceMemory (RAM in GB)
+  coreScore      * 0.20 +   // navigator.hardwareConcurrency (CPU cores)
+  networkScore   * 0.20;    // navigator.connection (2G / 3G / 4G)
+```
+
+The score buckets the device into one of three tiers:
+
+| Tier | Score | Typical Device |
+|:---|:---|:---|
+| 🔴 **Slow** | 0 – 70 | Budget phones, old laptops, throttled connections |
+| 🟡 **Medium** | 71 – 90 | Mid-range phones, average laptops, 3G+ |
+| 🟢 **Fast** | 91 – 100 | Flagship phones, modern laptops, 4G / Wi-Fi |
+
+### Stage 2 — Experience Adaptation
+
+Based on the tier, the app automatically changes what it renders:
+
+| Feature | 🔴 Slow | 🟡 Medium | 🟢 Fast |
+|:---|:---|:---|:---|
+| **Images** | Low-res (200px) | Standard | High-res (800px) |
+| **Animations** | Disabled entirely | Limited | Full Framer Motion |
+| **UI Components** | Simplified / text-only | Standard | Rich with gradients |
+| **Backgrounds** | Flat colours | Standard | Gradient effects |
+| **Prefetching** | Disabled | Selective | Aggressive |
+| **Bundle** | Slim | Standard | Full |
+
+### Stage 3 — Live RUM Dashboard
+
+The built-in **PerformanceWidget** captures real metrics from your actual device every second using the `PerformanceObserver` API:
+
+- **Memory Usage** — live JS heap size in MB
+- **Speed Score** — CPU benchmark result (0–100)
+- **Capability Bucket** — your current device tier
+- **FCP, LCP, TBT, CLS** — Core Web Vitals as you browse
+
+Visit `/admin` for the full analytics dashboard with visual score breakdowns and network indicators.
+
+---
+
+## ✨ Features
+
+- 🛍️ **Product Catalog** — 120+ products with category filtering and text search
+- 📄 **Product Detail Pages** — full specs, image gallery, and add-to-cart
+- 🛒 **Cart & Checkout** — persistent cart state, quantity controls, mock payment flow
+- 📊 **Live Performance Widget** — floating RUM dashboard updating every second
+- 🖥️ **Admin Dashboard** — real-time device metrics, score breakdown, capability indicators
+- 📱 **Adaptive UI** — every visual decision driven by your device tier
+- 🔌 **Service Worker** — stale-while-revalidate caching for offline support
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technologies |
+|:---|:---|
+| **Language** | TypeScript |
+| **Framework** | React 18, React Router |
+| **Styling** | Tailwind CSS, shadcn/ui (49 components) |
+| **State** | Context API (CapabilityContext + CartContext) |
+| **Monitoring** | `PerformanceObserver`, `navigator.deviceMemory`, `navigator.hardwareConcurrency`, `navigator.connection`, `performance.memory`, `requestAnimationFrame` |
+| **Performance** | Lazy Loading, Route + Component-level Code Splitting, Service Worker |
+| **Build** | Vite |
+| **Deployment** | Vercel |
+
+---
+
+## 📦 Bundle Breakdown
+
+Route-level code splitting — users only download the page they open:
+
+```
+Home            23.7 KB │ gzip:   4.9 KB
+Products        41.1 KB │ gzip:  14.4 KB   ← catalog with filters
+ProductDetail    3.6 KB │ gzip:   1.4 KB
+Cart             4.0 KB │ gzip:   1.4 KB
+Checkout         4.6 KB │ gzip:   1.5 KB
+Admin            8.7 KB │ gzip:   2.2 KB   ← never sent to regular users
+
+Vendor bundle (React, Router, shadcn):
+  index        318.5 KB │ gzip: 103.6 KB   ← cached after first visit
+
+CSS:
+  index         72.5 KB │ gzip:  12.8 KB
+
+Total modules: 1,726 │ Build time: 9.13s
+```
+
+A first-time visitor on Home downloads **~23 KB of JS**. The vendor bundle is cached after the first visit — repeat visits are near-instant.
+
+---
+
+## 🧪 Testing Adaptive Behavior
+
+### Simulate a slow device (Chrome DevTools)
+1. F12 → **Performance** tab → gear icon → CPU throttling → **6x slowdown**
+2. **Network** tab → **Slow 3G**
+3. Refresh — the app will detect a low score and switch to slim mode
+
+### Force a specific tier manually
+```typescript
+// src/contexts/CapabilityContext.tsx
+const bucket = 'slow'; // 'slow' | 'medium' | 'fast'
+```
+
+### Expected behaviour per tier
+
+| Bucket | Images | Animations | UI Style | Prefetch |
+|:---|:---|:---|:---|:---|
+| Slow (0–70%) | Low-res | Off | Simple | Off |
+| Medium (71–90%) | Standard | Limited | Standard | Selective |
+| Fast (91–100%) | High-res | Full | Rich | Aggressive |
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ and npm
+- Node.js v18+
 
-### Installation
+### Clone & run
 
 ```bash
-# Clone the repository
-git clone <YOUR_GIT_URL>
-
-# Navigate to project
-cd <YOUR_PROJECT_NAME>
-
-# Install dependencies
+git clone https://github.com/AjayyyKumawat/PerformanceShop.git
+cd PerformanceShop
 npm install
-
-# Start development server
-npm run dev
+npm run dev      # http://localhost:8080
 ```
 
-The app will be available at `http://localhost:8080`
-
-### Build for Production
+### Build for production
 
 ```bash
-# Create optimized production build
-npm run build
-
-# Preview production build
-npm run preview
+npm run build    # outputs to /dist
+npm run preview  # preview the production build locally
 ```
-
-## 🧪 Testing Adaptive Behavior
-
-### Simulating Slow Devices
-
-**Method 1: Chrome DevTools**
-1. Open Chrome DevTools (F12)
-2. Go to Performance tab
-3. Click the gear icon
-4. Enable "CPU throttling" → Select "4x slowdown" or "6x slowdown"
-5. Go to Network tab → Select "Slow 3G" or "Fast 3G"
-6. Refresh the page
-
-**Method 2: Manual Override**
-You can temporarily modify the capability detection in `src/contexts/CapabilityContext.tsx`:
-
-```typescript
-// Force slow mode for testing
-const bucket = 'slow'; // Instead of calculation
-```
-
-### Simulating Fast Devices
-
-**Modern Desktop/Laptop:**
-- 8GB+ RAM
-- 8+ CPU cores
-- 4G connection
-- Fast benchmark score
-
-The app will automatically enable all premium features.
-
-### Expected Behavior
-
-| Device Bucket | Images | Animations | UI Style | Bundle |
-|--------------|---------|-----------|----------|---------|
-| Slow (0-70%) | Low res | Disabled | Simple | Slim |
-| Medium (71-90%) | Medium res | Limited | Standard | Standard |
-| Fast (91-100%) | High res | Full | Rich | Full |
-
-## 📊 RUM Analytics Dashboard
-
-Navigate to `/admin` to view:
-
-- Real-time device capability metrics
-- Score breakdown with visual progress bars
-- Current adaptive optimizations
-- Memory usage and CPU performance
-- Network quality indicators
-
-## 🎨 Design System
-
-The app uses a semantic design token system defined in:
-- `src/index.css` - CSS variables for colors, gradients, transitions
-- `tailwind.config.ts` - Tailwind theme extensions
-
-### Color Palette
-- **Primary**: Blue (#0891b2) - Main brand color
-- **Secondary**: Teal (#14b8a6) - Secondary actions
-- **Accent**: Orange (#f97316) - Call-to-actions
-- **Success**: Green (#10b981) - Positive states
-- **Warning**: Yellow (#f59e0b) - Caution states
-- **Destructive**: Red (#ef4444) - Errors/delete actions
-
-## 🗂️ Project Structure
-
-```
-src/
-├── components/
-│   ├── ui/              # shadcn/ui components
-│   ├── Header.tsx       # Navigation header
-│   ├── ProductCard.tsx  # Product list item
-│   └── PerformanceWidget.tsx  # Live metrics widget
-├── contexts/
-│   ├── CapabilityContext.tsx  # Device capability detection
-│   └── CartContext.tsx        # Shopping cart state
-├── data/
-│   └── products.ts      # Product catalog (120 items)
-├── pages/
-│   ├── Home.tsx         # Landing page
-│   ├── Products.tsx     # Product listing
-│   ├── ProductDetail.tsx # Single product view
-│   ├── Cart.tsx         # Shopping cart
-│   ├── Checkout.tsx     # Checkout flow
-│   ├── Admin.tsx        # Analytics dashboard
-│   └── NotFound.tsx     # 404 page
-├── types/
-│   └── product.ts       # TypeScript interfaces
-├── App.tsx              # Root component with routing
-└── main.tsx             # Application entry point
-
-public/
-└── service-worker.js    # PWA caching logic
-```
-
-## 🔧 Key Implementation Details
-
-### Capability Detection Algorithm
-
-```typescript
-// Weighted scoring system
-const totalScore = 
-  benchmarkScore * 0.30 +    // CPU performance
-  memoryScore * 0.30 +        // RAM capacity
-  coreScore * 0.20 +          // CPU cores
-  networkScore * 0.20;        // Connection speed
-
-// Bucket determination
-const bucket = totalScore <= 70 ? 'slow' 
-  : totalScore <= 90 ? 'medium' 
-  : 'fast';
-```
-
-### Image Optimization
-
-```typescript
-// Adaptive image selection
-const imageUrl = isSlimMode 
-  ? product.imageLow    // 200px width
-  : product.imageHigh;  // 800px width
-```
-
-### Code Splitting
-
-```typescript
-// Lazy load pages and heavy components
-const Products = lazy(() => import("./pages/Products"));
-const ProductCard = lazy(() => 
-  import('@/components/ProductCard').then(m => ({ default: m.ProductCard }))
-);
-```
-
-### Service Worker Caching
-
-The service worker implements a **stale-while-revalidate** strategy:
-1. Return cached response immediately if available
-2. Fetch fresh data from network in background
-3. Update cache for next request
-4. Fallback to cache on network failure
-
-## 📈 Performance Metrics
-
-The app tracks and displays:
-- **Memory Usage**: Real-time JS heap size
-- **Benchmark Score**: CPU performance (0-100)
-- **Total Score**: Weighted device capability (0-100)
-- **Capability Bucket**: Slow/Medium/Fast classification
-
-## 🌐 Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-
-**Required APIs:**
-- `navigator.deviceMemory` (Chrome only, graceful fallback)
-- `navigator.hardwareConcurrency`
-- `navigator.connection` (with fallback)
-- `performance.memory` (Chrome only, graceful fallback)
-
-## 🔄 Future Enhancements
-
-- [ ] Real backend API integration
-- [ ] User authentication
-- [ ] Order history
-- [ ] Product reviews and ratings
-- [ ] Advanced filtering (price range, ratings)
-- [ ] Wishlist functionality
-- [ ] A/B testing for optimization strategies
-- [ ] Enhanced analytics dashboard
-- [ ] Progressive Web App (PWA) manifest
-- [ ] Push notifications
-
-## 📝 License
-
-This project is built for demonstration purposes.
-
-## 🤝 Contributing
-
-This is a demonstration project showcasing adaptive optimization techniques. Feel free to use it as a reference for implementing similar patterns in your applications.
 
 ---
 
-**Built with ⚡ by Lovable** - Demonstrating the power of RUM-based adaptive optimization for modern web applications.
+## 📁 Project Structure
+
+```
+PerformanceShop/
+├── public/
+│   └── service-worker.js        # stale-while-revalidate caching
+└── src/
+    ├── contexts/
+    │   ├── CapabilityContext.tsx # device detection + scoring engine
+    │   └── CartContext.tsx       # cart state
+    ├── pages/                   # 7 route-level pages (each code-split)
+    │   ├── Home.tsx
+    │   ├── Products.tsx
+    │   ├── ProductDetail.tsx
+    │   ├── Cart.tsx
+    │   ├── Checkout.tsx
+    │   ├── Admin.tsx             # RUM analytics dashboard
+    │   └── NotFound.tsx
+    ├── components/
+    │   ├── Header.tsx
+    │   ├── NavLink.tsx
+    │   ├── ProductCard.tsx       # adaptive image quality per tier
+    │   ├── PerformanceWidget.tsx # live floating RUM widget
+    │   └── ui/                  # 49 shadcn/ui base components
+    ├── data/
+    │   └── products.ts          # 120+ product catalog
+    ├── types/
+    │   └── product.ts           # TypeScript interfaces
+    └── App.tsx
+```
+
+---
+
+## 🌐 Browser Support
+
+Chrome / Edge 90+, Firefox 88+, Safari 14+
+
+> `navigator.deviceMemory` and `performance.memory` are Chrome-only — the app falls back gracefully on unsupported browsers and defaults to medium tier.
+
+---
+
+## 🙋‍♂️ Author
+
+**Ajay Kumawat**
+- GitHub: [@AjayyyKumawat](https://github.com/AjayyyKumawat)
+- LinkedIn: [Ajay Kumawat](https://www.linkedin.com/in/AjayyyKumawat/)
+- Email: ajaykumawat1703@gmail.com
