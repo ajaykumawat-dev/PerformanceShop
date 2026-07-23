@@ -9,8 +9,9 @@ import { CartProvider } from "@/contexts/CartContext";
 import { PerformanceWidget } from "@/components/PerformanceWidget";
 import { Header } from "@/components/Header";
 
+import Home from "./pages/Home";
+
 // Lazy load pages for code splitting
-const Home = lazy(() => import("./pages/Home"));
 const Products = lazy(() => import("./pages/Products"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Cart = lazy(() => import("./pages/Cart"));

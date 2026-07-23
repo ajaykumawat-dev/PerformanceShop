@@ -19,12 +19,71 @@
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <!-- Preload and asynchronously load the heavy Material Symbols icon font -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    </noscript>
+    <!-- Synchronously load the main text fonts for faster Largest Contentful Paint (LCP) -->
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Instant Skeleton Loader for extremely fast First Contentful Paint (FCP) -->
+      <style>
+        .initial-loader {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          background-color: #f8fafc;
+          font-family: system-ui, -apple-system, sans-serif;
+        }
+        .initial-header {
+          height: 64px;
+          border-bottom: 1px solid #e2e8f0;
+          display: flex;
+          align-items: center;
+          padding: 0 24px;
+          background-color: rgba(255, 255, 255, 0.8);
+        }
+        .initial-brand {
+          font-size: 20px;
+          font-weight: 700;
+          color: #0f172a;
+        }
+        .initial-main {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .initial-spinner {
+          width: 48px;
+          height: 48px;
+          border: 4px solid #0284c7;
+          border-top-color: transparent;
+          border-radius: 50%;
+          animation: initial-spin 1s linear infinite;
+        }
+        @keyframes initial-spin {
+          to { transform: rotate(360deg); }
+        }
+        @media (prefers-color-scheme: dark) {
+          .initial-loader { background-color: #0f172a; }
+          .initial-header { background-color: rgba(15, 23, 42, 0.8); border-bottom-color: #1e293b; }
+          .initial-brand { color: #f8fafc; }
+        }
+      </style>
+      <div class="initial-loader">
+        <header class="initial-header">
+          <div class="initial-brand">PerformanceShop</div>
+        </header>
+        <main class="initial-main">
+          <div class="initial-spinner"></div>
+        </main>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
 
   </body>
